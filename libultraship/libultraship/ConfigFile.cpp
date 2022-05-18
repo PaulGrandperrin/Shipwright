@@ -3,13 +3,30 @@
 #include "GlobalCtx2.h"
 #include "Window.h"
 #include "GameSettings.h"
+#include <filesystem>
 
 namespace Ship {
-	ConfigFile::ConfigFile(std::shared_ptr<GlobalCtx2> Context, const std::string& Path) : Context(Context), Path(Path), File(Path.c_str()) {
-		if (Path.empty()) {
-			SPDLOG_ERROR("ConfigFile received an empty file name");
+	ConfigFile::ConfigFile(std::shared_ptr<GlobalCtx2> Context) : Context(Context), File("") {
+		std::filesystem::path conf_path;
+		if(const char* xdg_conf_home = std::getenv("XDG_CONFIG_HOME")) {
+			conf_path += xdg_conf_home;
+			conf_path += "/shipwright";
+		} else if (const char* home = std::getenv("HOME")) {
+			conf_path += home;
+			conf_path += "/.config/shipwright";
+		} else {
+			conf_path += ".";
+		}
+
+		if (!(std::filesystem::exists(conf_path) || std::filesystem::create_directories(conf_path))) {
+			SPDLOG_ERROR("Failed to create directories for default configs");
 			exit(EXIT_FAILURE);
 		}
+
+		conf_path += "/shipofharkinian.ini";
+
+		Path = conf_path;
+		File = mINI::INIFile(Path.c_str());
 
 		if (!File.read(Val)) {
 			if (!CreateDefaultConfig()) {

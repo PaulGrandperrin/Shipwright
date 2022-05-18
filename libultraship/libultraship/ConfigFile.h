@@ -14,7 +14,7 @@ namespace Ship {
 
 	class ConfigFile {
 		public:
-			ConfigFile(std::shared_ptr<GlobalCtx2> Context, const std::string& Path);
+			ConfigFile(std::shared_ptr<GlobalCtx2> Context);
 			~ConfigFile();
 			
 			bool Save();
