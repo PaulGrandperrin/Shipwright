@@ -42,9 +42,6 @@ namespace Ship {
         InitLogging();
         Config = std::make_shared<ConfigFile>(GlobalCtx2::GetInstance());
         MainPath = (*Config)["ARCHIVE"]["Main Archive"];
-        if (MainPath.empty()) {
-            MainPath = "oot.otr";
-        }
         PatchesPath = (*Config)["ARCHIVE"]["Patches Directory"];
         if (PatchesPath.empty()) {
             PatchesPath = "./";

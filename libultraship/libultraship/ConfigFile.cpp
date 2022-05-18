@@ -73,7 +73,7 @@ namespace Ship {
 	}
 
 	bool ConfigFile::CreateDefaultConfig() {
-		(*this)["ARCHIVE"]["Main Archive"] = "oot.otr";
+		(*this)["ARCHIVE"]["Main Archive"] = "";
 		(*this)["ARCHIVE"]["Patches Directory"] = "";
 
 		(*this)["CONTROLLERS"]["CONTROLLER 1"] = "Auto";

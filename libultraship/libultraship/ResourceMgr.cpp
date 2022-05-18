@@ -6,10 +6,15 @@
 #include "GameVersions.h"
 #include <Utils/StringHelper.h>
 #include "Lib/StormLib/StormLib.h"
+#include <filesystem>
 
 namespace Ship {
 
 	ResourceMgr::ResourceMgr(std::shared_ptr<GlobalCtx2> Context, std::string MainPath, std::string PatchesPath) : Context(Context), bIsRunning(false), FileLoadThread(nullptr) {
+		if (MainPath.empty()) {
+			MainPath = std::filesystem::canonical("/proc/self/exe").parent_path() / ".." / "lib" / "oot.otr";
+		}
+
 		OTR = std::make_shared<Archive>(MainPath, PatchesPath, false);
 
 		gameVersion = OOT_UNKNOWN;
