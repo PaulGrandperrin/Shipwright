@@ -1,6 +1,7 @@
 #include "GlobalCtx2.h"
 #include <iostream>
 #include <vector>
+#include <filesystem>
 #include "ResourceMgr.h"
 #include "Window.h"
 #include "spdlog/async.h"
@@ -40,6 +41,23 @@ namespace Ship {
 
     void GlobalCtx2::InitWindow() {
         InitLogging();
+
+        // create directory for saves
+        std::filesystem::path save_dir;
+        if(const char* xdg_data_home = std::getenv("XDG_DATA_HOME")) {
+            save_dir += xdg_data_home;
+            save_dir += "/shipwright";
+        } else if (const char* home = std::getenv("HOME")) {
+            save_dir += home;
+            save_dir += "/.local/share/shipwright";
+        } else {
+            save_dir += ".";
+        }
+        if (!(std::filesystem::exists(save_dir) || std::filesystem::create_directories(save_dir))) {
+            SPDLOG_ERROR("Failed to create directories for saves");
+            exit(EXIT_FAILURE);
+        }
+
         Config = std::make_shared<ConfigFile>(GlobalCtx2::GetInstance());
         MainPath = (*Config)["ARCHIVE"]["Main Archive"];
         PatchesPath = (*Config)["ARCHIVE"]["Patches Directory"];

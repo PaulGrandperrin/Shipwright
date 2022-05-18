@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 #if 0
 typedef struct {
@@ -58,13 +59,29 @@ void SsSram_Dma(void* dramAddr, size_t size, s32 direction) {
 
 void SsSram_ReadWrite(uintptr_t addr, void* dramAddr, size_t size, s32 direction) {
     osSyncPrintf("ssSRAMReadWrite:%08x %08x %08x %d\n", addr, (uintptr_t)dramAddr, size, direction);
+    
+    // find save path
+    char save_path[255]; // who cares about overflows in C ;)
+    char* xdg_data_home = getenv("XDG_DATA_HOME");
+    char* home = getenv("HOME");
+    if(xdg_data_home) {
+        strcpy(save_path, xdg_data_home);
+        strcpy(save_path + strlen(save_path), "/shipwright");
+    } else if (home) {
+        strcpy(save_path, home);
+        strcpy(save_path + strlen(save_path), "/.local/share/shipwright");
+    } else {
+        strcpy(save_path, ".");
+    }
+    strcpy(save_path + strlen(save_path), "/oot_save.sav");
+    
     //Check to see if the file exists
     FILE* saveFile;
-    saveFile = fopen("oot_save.sav", "rb");
+    saveFile = fopen(save_path, "rb");
 
     if (saveFile == NULL) {
 
-        saveFile = fopen("oot_save.sav", "wb");
+        saveFile = fopen(save_path, "wb");
         fseek(saveFile, 0, SEEK_SET);
         assert(saveFile != NULL); // OTRTODO LOG
         uint8_t zero = 0;
@@ -78,14 +95,14 @@ void SsSram_ReadWrite(uintptr_t addr, void* dramAddr, size_t size, s32 direction
     }
     switch (direction) { 
         case OS_WRITE: {
-            saveFile = fopen("oot_save.sav", "r+b");
+            saveFile = fopen(save_path, "r+b");
             rewind(saveFile);
             fseek(saveFile, addr, SEEK_SET);
             fwrite(dramAddr, size, 1, saveFile);
             fclose(saveFile);
         } break;
         case OS_READ: {
-            saveFile = fopen("oot_save.sav", "rb+");
+            saveFile = fopen(save_path, "rb+");
             rewind(saveFile);
             fseek(saveFile, addr, SEEK_SET);
             fread(dramAddr, size, 1, saveFile);
