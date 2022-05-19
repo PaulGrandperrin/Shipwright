@@ -498,10 +498,28 @@ template <typename Numeric> bool is_number(const std::string& s) {
     return ((std::istringstream(s) >> n >> std::ws).eof());
 }
 
+std::filesystem::path GetConfPath() {
+    std::filesystem::path conf_path;
+    if(const char* xdg_conf_home = std::getenv("XDG_CONFIG_HOME")) {
+        conf_path += xdg_conf_home;
+        conf_path += "/shipwright";
+    } else if (const char* home = std::getenv("HOME")) {
+        conf_path += home;
+        conf_path += "/.config/shipwright";
+    } else {
+        conf_path += ".";
+    }
+
+    return conf_path;
+}
+
 void DebugConsole_LoadCVars()
 {
-    if (File::Exists("cvars.cfg")) {
-        const auto lines = File::ReadAllLines("cvars.cfg");
+
+    auto cvars_path = GetConfPath() / "cvars.cfg";
+
+    if (File::Exists(cvars_path)) {
+        const auto lines = File::ReadAllLines(cvars_path);
 
         for (const std::string& line : lines) {
             std::vector<std::string> cfg = StringHelper::Split(line, " = ");
@@ -535,5 +553,9 @@ void DebugConsole_SaveCVars()
             output += StringHelper::Sprintf("%s = %f\n", cvar.first.c_str(), cvar.second->value.valueFloat);
     }
 
-    File::WriteAllText("cvars.cfg", output);
+    auto conf_path = GetConfPath();
+
+    if (std::filesystem::exists(conf_path) || std::filesystem::create_directories(conf_path)) {
+        File::WriteAllText(conf_path / "cvars.cfg", output);
+    }
 }
